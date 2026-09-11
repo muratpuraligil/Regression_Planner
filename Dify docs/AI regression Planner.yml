@@ -1,0 +1,624 @@
+app:
+  description: Jira/Xray Regression Planner - Automating Test Plan & Execution Linking
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: AI Regression Planner
+# env variables reference (source: Dify docs/jiraEnvVariables)
+# jiraAuth: Basic ...
+# applicationjson: application/json
+# xray_client_id: ...
+# xray_client_secret: ...
+kind: app
+version: 0.1.5
+workflow:
+  features:
+    file_upload:
+      image:
+        enabled: false
+    opening_statement: ''
+    retrieval_resource:
+      enabled: true
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: http-request
+      id: start-jira_fetch
+      source: start
+      sourceHandle: source
+      target: jira_fetch
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: jira_fetch-normalize_cases
+      source: jira_fetch
+      sourceHandle: source
+      target: normalize_cases
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: code
+      id: normalize_cases-distribute
+      source: normalize_cases
+      sourceHandle: source
+      target: distribute
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: http-request
+      id: distribute-create_test_plan
+      source: distribute
+      sourceHandle: source
+      target: create_test_plan
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: create_test_plan-parse_plan_key
+      source: create_test_plan
+      sourceHandle: source
+      target: parse_plan_key
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: http-request
+      id: parse_plan_key-create_exec1
+      source: parse_plan_key
+      sourceHandle: source
+      target: create_exec1
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: http-request
+      id: create_exec1-create_exec2
+      source: create_exec1
+      sourceHandle: source
+      target: create_exec2
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: http-request
+      id: create_exec2-create_exec3
+      source: create_exec2
+      sourceHandle: source
+      target: create_exec3
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: http-request
+      id: create_exec3-create_exec4
+      source: create_exec3
+      sourceHandle: source
+      target: create_exec4
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: create_exec4-xray_linker
+      source: create_exec4
+      sourceHandle: source
+      target: xray_linker
+      targetHandle: target
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: end
+      id: xray_linker-end
+      source: xray_linker
+      sourceHandle: source
+      target: end
+      targetHandle: target
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Start
+        type: start
+        variables:
+        - label: fixVersion
+          max_length: 32
+          options: []
+          required: true
+          type: text-input
+          variable: fixVersion
+      height: 90
+      id: start
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        code: |-
+          def main(fixVersion):
+              import json, requests
+              headers = {
+                  "Authorization": "Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0YwZTVNNUFIMVp3ZVBSRE5qc3RQZDA0OG9JNFk5dGxEaTU4V3g2QmFiU0Fock93Qjdsc3ZnX0xzVm1za1AtdVJRcTlMcXFLdUpvanFlRl9BU1VGOFpiOXgyNWM5c0h4T2VWMEN2OG4tbDJaek9DRHVXc2dOZ2FEOGlzM0F4NWtYRUhoR2R1QXZqZUxtSUhweHJJWXpncnFrMUphbEpYTFliTzFLV20zQWQzc3FNPThBMERFQzNF",
+                  "Content-Type": "application/json"
+              }
+              j1 = f'project = ISCEPTEST AND "Is Regression[Dropdown]" = YES AND type = "Test" AND fixVersion in ("{fixVersion}") ORDER BY parent ASC'
+              u1 = f'https://commencis.atlassian.net/rest/api/3/search/jql?jql={requests.utils.quote(j1)}&maxResults=200'
+              u2 = f'https://commencis.atlassian.net/rest/api/3/search?jql={requests.utils.quote("filter=14716")}&maxResults=200'
+              
+              def fetch(u, src):
+                  try:
+                      r = requests.get(u, headers=headers, timeout=15)
+                      if r.status_code != 200: return []
+                      res = []
+                      for i in r.json().get('issues', []):
+                          f = i.get('fields') or {}
+                          p = f.get('parent')
+                          epic_key = (p.get('key') if isinstance(p, dict) else None) or f.get('customfield_10008') or "NO_EPIC"
+                          res.append({
+                              'key': i.get('key'),
+                              'id': i.get('id'),
+                              'epic': epic_key,
+                              'priority': f.get('priority', {}) and f.get('priority', {}).get('name', 'Medium') or 'Medium',
+                              'source': src
+                          })
+                      return res
+                  except Exception as e:
+                      return []
+                      
+              return {'body': json.dumps(fetch(u1, "release") + fetch(u2, "regression"))}
+        code_language: python3
+        desc: ''
+        outputs:
+          body:
+            type: string
+        selected: false
+        title: Jira Multi Fetch
+        type: code
+        variables:
+        - value_selector:
+          - start
+          - fixVersion
+          variable: fixVersion
+      height: 105
+      id: jira_fetch
+      position:
+        x: 374
+        y: 282
+      positionAbsolute:
+        x: 374
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        code: "def main(body):\n    return {'cases_json': body if body else '[]'}"
+        code_language: python3
+        desc: ''
+        outputs:
+          cases_json:
+            type: string
+        selected: false
+        title: Normalize Cases
+        type: code
+        variables:
+        - value_selector:
+          - jira_fetch
+          - body
+          variable: body
+      height: 105
+      id: normalize_cases
+      position:
+        x: 668
+        y: 282
+      positionAbsolute:
+        x: 668
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+    - data:
+        code: |-
+          def main(cases_json):
+              import json
+              from collections import defaultdict
+              p_order = {'Highest': 0, 'High': 1, 'Medium': 2, 'Low': 3, 'Lowest': 4}
+              try:
+                  cases = json.loads(cases_json) if cases_json else []
+              except:
+                  cases = []
+
+              def distribute(dataset, limit):
+                  epics = defaultdict(list)
+                  for c in dataset:
+                      epics[c.get('epic') or 'NO_EPIC'].append(c)
+                  
+                  for k in epics:
+                      epics[k] = sorted(epics[k], key=lambda x: (p_order.get(str(x.get('priority', '')), 2), str(x.get('key'))))
+                      
+                  ordered = []
+                  depth = 0
+                  while True:
+                      added = False
+                      for k in sorted(epics.keys()):
+                          if depth < len(epics[k]):
+                              ordered.append(epics[k][depth])
+                              added = True
+                      depth += 1
+                      if not added: break
+                  return [ordered[i*limit : (i+1)*limit] for i in range(4)]
+
+              rel = distribute([c for c in cases if c.get('source') == 'release'], 13)
+              reg = distribute([c for c in cases if c.get('source') == 'regression'], 7)
+
+              res = {}
+              for i in range(4):
+                  ids = [c.get('id') for c in (rel[i] + reg[i]) if c.get('id')]
+                  res[f'exec{i+1}_keys_str'] = json.dumps(ids)
+              return res
+        code_language: python3
+        desc: ''
+        outputs:
+          exec1_keys_str:
+            type: string
+          exec2_keys_str:
+            type: string
+          exec3_keys_str:
+            type: string
+          exec4_keys_str:
+            type: string
+        selected: false
+        title: Distribute
+        type: code
+        variables:
+        - value_selector:
+          - normalize_cases
+          - cases_json
+          variable: cases_json
+      height: 105
+      id: distribute
+      position:
+        x: 1256
+        y: 282
+      positionAbsolute:
+        x: 1256
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: "{\n  \"fields\": {\n    \"project\": {\"key\": \"ISCEPTEST\"},\n\
+            \    \"summary\": \"Iscep Client RC {{#start.fixVersion#}} - Test Plan\"\
+            ,\n    \"issuetype\": {\"name\": \"Test Plan\"},\n    \"fixVersions\"\
+            : [{\"name\": \"{{#start.fixVersion#}}\"}],\n    \"customfield_10184\"\
+            : {\"value\": \"Yes\"}\n  }\n}"
+          type: json
+        desc: ''
+        headers: |-
+          Authorization: Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0YwZTVNNUFIMVp3ZVBSRE5qc3RQZDA0OG9JNFk5dGxEaTU4V3g2QmFiU0Fock93Qjdsc3ZnX0xzVm1za1AtdVJRcTlMcXFLdUpvanFlRl9BU1VGOFpiOXgyNWM5c0h4T2VWMEN2OG4tbDJaek9DRHVXc2dOZ2FEOGlzM0F4NWtYRUhoR2R1QXZqZUxtSUhweHJJWXpncnFrMUphbEpYTFliTzFLV20zQWQzc3FNPThBMERFQzNF
+          Content-Type: application/json
+        method: post
+        params: ''
+        selected: false
+        timeout:
+          connect: 10
+          read: 60
+          write: 20
+        title: Create Test Plan
+        type: http-request
+        url: https://commencis.atlassian.net/rest/api/3/issue
+      height: 105
+      id: create_test_plan
+      position:
+        x: 1550
+        y: 282
+      positionAbsolute:
+        x: 1550
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        code: "def main(body):\n    import json\n    data = json.loads(body)\n   \
+          \ return {'plan_key': data.get('key'), 'plan_id': data.get('id')}\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          plan_id:
+            type: string
+          plan_key:
+            type: string
+        selected: false
+        title: Parse Plan Key
+        type: code
+        variables:
+        - value_selector:
+          - create_test_plan
+          - body
+          variable: body
+      height: 105
+      id: parse_plan_key
+      position:
+        x: 1844
+        y: 282
+      positionAbsolute:
+        x: 1844
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: "{\n  \"fields\": {\n    \"project\": {\"key\": \"ISCEPTEST\"},\n\
+            \    \"summary\": \"Iscep Client RC {{#start.fixVersion#}} - Execution\
+            \ 1\",\n    \"issuetype\": {\"name\": \"Test Execution\"},\n    \"fixVersions\"\
+            : [{\"name\": \"{{#start.fixVersion#}}\"}],\n    \"customfield_10184\"\
+            : {\"value\": \"Yes\"}\n  }\n}"
+          type: json
+        desc: ''
+        headers: |-
+          Authorization: Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0YwZTVNNUFIMVp3ZVBSRE5qc3RQZDA0OG9JNFk5dGxEaTU4V3g2QmFiU0Fock93Qjdsc3ZnX0xzVm1za1AtdVJRcTlMcXFLdUpvanFlRl9BU1VGOFpiOXgyNWM5c0h4T2VWMEN2OG4tbDJaek9DRHVXc2dOZ2FEOGlzM0F4NWtYRUhoR2R1QXZqZUxtSUhweHJJWXpncnFrMUphbEpYTFliTzFLV20zQWQzc3FNPThBMERFQzNF
+          Content-Type: application/json
+        method: post
+        params: ''
+        selected: false
+        timeout:
+          connect: 10
+          read: 60
+          write: 20
+        title: Create Exec 1
+        type: http-request
+        url: https://commencis.atlassian.net/rest/api/3/issue
+      height: 105
+      id: create_exec1
+      position:
+        x: 2138
+        y: 282
+      positionAbsolute:
+        x: 2138
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: "{\n  \"fields\": {\n    \"project\": {\"key\": \"ISCEPTEST\"},\n\
+            \    \"summary\": \"Iscep Client RC {{#start.fixVersion#}} - Execution\
+            \ 2\",\n    \"issuetype\": {\"name\": \"Test Execution\"},\n    \"fixVersions\"\
+            : [{\"name\": \"{{#start.fixVersion#}}\"}],\n    \"customfield_10184\"\
+            : {\"value\": \"Yes\"}\n  }\n}"
+          type: json
+        desc: ''
+        headers: |-
+          Authorization: Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0YwZTVNNUFIMVp3ZVBSRE5qc3RQZDA0OG9JNFk5dGxEaTU4V3g2QmFiU0Fock93Qjdsc3ZnX0xzVm1za1AtdVJRcTlMcXFLdUpvanFlRl9BU1VGOFpiOXgyNWM5c0h4T2VWMEN2OG4tbDJaek9DRHVXc2dOZ2FEOGlzM0F4NWtYRUhoR2R1QXZqZUxtSUhweHJJWXpncnFrMUphbEpYTFliTzFLV20zQWQzc3FNPThBMERFQzNF
+          Content-Type: application/json
+        method: post
+        params: ''
+        selected: false
+        timeout:
+          connect: 10
+          read: 60
+          write: 20
+        title: Create Exec 2
+        type: http-request
+        url: https://commencis.atlassian.net/rest/api/3/issue
+      height: 105
+      id: create_exec2
+      position:
+        x: 2432
+        y: 282
+      positionAbsolute:
+        x: 2432
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: "{\n  \"fields\": {\n    \"project\": {\"key\": \"ISCEPTEST\"},\n\
+            \    \"summary\": \"Iscep Client RC {{#start.fixVersion#}} - Execution\
+            \ 3\",\n    \"issuetype\": {\"name\": \"Test Execution\"},\n    \"fixVersions\"\
+            : [{\"name\": \"{{#start.fixVersion#}}\"}],\n    \"customfield_10184\"\
+            : {\"value\": \"Yes\"}\n  }\n}"
+          type: json
+        desc: ''
+        headers: |-
+          Authorization: Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0YwZTVNNUFIMVp3ZVBSRE5qc3RQZDA0OG9JNFk5dGxEaTU4V3g2QmFiU0Fock93Qjdsc3ZnX0xzVm1za1AtdVJRcTlMcXFLdUpvanFlRl9BU1VGOFpiOXgyNWM5c0h4T2VWMEN2OG4tbDJaek9DRHVXc2dOZ2FEOGlzM0F4NWtYRUhoR2R1QXZqZUxtSUhweHJJWXpncnFrMUphbEpYTFliTzFLV20zQWQzc3FNPThBMERFQzNF
+          Content-Type: application/json
+        method: post
+        params: ''
+        selected: false
+        timeout:
+          connect: 10
+          read: 60
+          write: 20
+        title: Create Exec 3
+        type: http-request
+        url: https://commencis.atlassian.net/rest/api/3/issue
+      height: 105
+      id: create_exec3
+      position:
+        x: 2726
+        y: 282
+      positionAbsolute:
+        x: 2726
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: "{\n  \"fields\": {\n    \"project\": {\"key\": \"ISCEPTEST\"},\n\
+            \    \"summary\": \"Iscep Client RC {{#start.fixVersion#}} - Execution\
+            \ 4\",\n    \"issuetype\": {\"name\": \"Test Execution\"},\n    \"fixVersions\"\
+            : [{\"name\": \"{{#start.fixVersion#}}\"}],\n    \"customfield_10184\"\
+            : {\"value\": \"Yes\"}\n  }\n}"
+          type: json
+        desc: ''
+        headers: |-
+          Authorization: Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0YwZTVNNUFIMVp3ZVBSRE5qc3RQZDA0OG9JNFk5dGxEaTU4V3g2QmFiU0Fock93Qjdsc3ZnX0xzVm1za1AtdVJRcTlMcXFLdUpvanFlRl9BU1VGOFpiOXgyNWM5c0h4T2VWMEN2OG4tbDJaek9DRHVXc2dOZ2FEOGlzM0F4NWtYRUhoR2R1QXZqZUxtSUhweHJJWXpncnFrMUphbEpYTFliTzFLV20zQWQzc3FNPThBMERFQzNF
+          Content-Type: application/json
+        method: post
+        params: ''
+        selected: false
+        timeout:
+          connect: 10
+          read: 60
+          write: 20
+        title: Create Exec 4
+        type: http-request
+        url: https://commencis.atlassian.net/rest/api/3/issue
+      height: 105
+      id: create_exec4
+      position:
+        x: 3020
+        y: 282
+      positionAbsolute:
+        x: 3020
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        code: |-
+          def main(client_id, client_secret, plan_id, exec1_res, exec2_res, exec3_res, exec4_res, add1, add2, add3, add4):
+              import json, requests
+              outputs = {"result": "Started"}
+              resp = requests.post("https://xray.cloud.getxray.app/api/v1/authenticate", json={"client_id": client_id, "client_secret": client_secret}, timeout=15).json()
+              token = resp if isinstance(resp, str) else resp.get("token")
+              headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+              url = "https://xray.cloud.getxray.app/api/v2/graphql"
+              def run_gql(q, v): return requests.post(url, headers=headers, json={'query': q, 'variables': v}, timeout=15).json()
+              def get_id(s): return json.loads(s).get('id') if s else None
+              e1i = get_id(exec1_res); e2i = get_id(exec2_res); e3i = get_id(exec3_res); e4i = get_id(exec4_res)
+              e_all = [i for i in [e1i, e2i, e3i, e4i] if i]
+              mut = 'mutation($p: String!, $e: [String]!) { addTestExecutionsToTestPlan(issueId: $p, testExecIssueIds: $e) { addedTestExecutions } }'
+              if e_all:
+                  outputs['plan_link'] = run_gql(mut, {'p': plan_id, 'e': e_all})
+              mut2 = 'mutation($e: String!, $t: [String]!) { addTestsToTestExecution(issueId: $e, testIssueIds: $t) { addedTests } }'
+              for i, (e_id, tests) in enumerate([(e1i, add1), (e2i, add2), (e3i, add3), (e4i, add4)]):
+                  if e_id and tests:
+                      outputs[f'set{i+1}'] = run_gql(mut2, {'e': e_id, 't': json.loads(tests)})
+              return {"result": json.dumps(outputs, indent=2)}
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            type: string
+        selected: false
+        title: Link in Xray Cloud
+        type: code
+        variables:
+        - value_selector:
+          - env
+          - xray_client_id
+          variable: client_id
+        - value_selector:
+          - env
+          - xray_client_secret
+          variable: client_secret
+        - value_selector:
+          - parse_plan_key
+          - plan_id
+          variable: plan_id
+        - value_selector:
+          - create_exec1
+          - body
+          variable: exec1_res
+        - value_selector:
+          - create_exec2
+          - body
+          variable: exec2_res
+        - value_selector:
+          - create_exec3
+          - body
+          variable: exec3_res
+        - value_selector:
+          - create_exec4
+          - body
+          variable: exec4_res
+        - value_selector:
+          - distribute
+          - exec1_keys_str
+          variable: add1
+        - value_selector:
+          - distribute
+          - exec2_keys_str
+          variable: add2
+        - value_selector:
+          - distribute
+          - exec3_keys_str
+          variable: add3
+        - value_selector:
+          - distribute
+          - exec4_keys_str
+          variable: add4
+      height: 105
+      id: xray_linker
+      position:
+        x: 3314
+        y: 282
+      positionAbsolute:
+        x: 3314
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - xray_linker
+          - result
+          variable: result
+        selected: false
+        title: End
+        type: end
+      height: 90
+      id: end
+      position:
+        x: 3608
+        y: 282
+      positionAbsolute:
+        x: 3608
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      width: 244

@@ -1,0 +1,992 @@
+app:
+  description: "Xray'de RC Planı ve Execution setleri şu isimler ile oluşturulur: TestPlan: RC Plan $fixVersion | Fonksiyonel: RC $fixVersion Functional-1..N | Non-Functional: RC $fixVersion Non-Functional-1..N"
+  icon: 🤖
+  icon_background: "#FFEAD5"
+  icon_type: emoji
+  mode: workflow
+  name: YAFI Regression Planner
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - description: Jira Authorization Header
+      id: env-1
+      name: jira_auth
+      selector:
+        - env
+        - jira_auth
+      value: Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0Ywc2xkcnU2LXJKajhTN19Dbno0N2JveXRtbG4yZWd1Q3ZKeXZlRGJzdU5MWkVoRjQycWc1SElRUnlvWWZPR2k2U0RUVWdBZVEzU19DQzMzNWcyTU40Q2ZORzZTR1R5amR1M2ZxbDNHcWx2dDBkTmsydThiM0RKSElrb2xaZWRnTzlPbnQ0VlhqMmFHX2VrRnRoNEZTejlWblVNZDdPSktMclNQdVFrYzVsOVM4PTYxNzEwOUE3
+      value_type: string
+    - description: Xray Client ID
+      id: env-2
+      name: xray_client_id
+      selector:
+        - env
+        - xray_client_id
+      value: D37A0EBFB2B94DAEB309F6273D75C267
+      value_type: string
+    - description: Xray Client Secret
+      id: env-3
+      name: xray_client_secret
+      selector:
+        - env
+        - xray_client_secret
+      value: 33e5ccbf946278c274aacd7e4a6a43b32e59f5cf6db16dba507f5bea7445dbec
+      value_type: string
+    - description: Microsoft Teams Webhook URL
+      id: env-4
+      name: teamsWebhookUrl
+      selector:
+        - env
+        - teamsWebhookUrl
+      value: ""
+      value_type: string
+  features:
+    file_upload:
+      allowed_file_extensions:
+        - .JPG
+        - .JPEG
+        - .PNG
+        - .GIF
+        - .WEBP
+        - .SVG
+      allowed_file_types:
+        - image
+      allowed_file_upload_methods:
+        - local_file
+        - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+          - local_file
+          - remote_url
+      number_limits: 3
+    opening_statement: ""
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+  graph:
+    edges:
+      - data:
+          isInIteration: false
+          sourceType: start
+          targetType: http-request
+        id: start-jira_fetch
+        source: start
+        sourceHandle: source
+        target: jira_fetch
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: http-request
+        id: jira_fetch-jira_fetch_non_func
+        source: jira_fetch
+        sourceHandle: source
+        target: jira_fetch_non_func
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: code
+        id: jira_fetch_non_func-normalize_cases
+        source: jira_fetch_non_func
+        sourceHandle: source
+        target: normalize_cases
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: code
+          targetType: code
+        id: normalize_cases-distribute
+        source: normalize_cases
+        sourceHandle: source
+        target: distribute
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: code
+          targetType: http-request
+        id: distribute-create_test_plan
+        source: distribute
+        sourceHandle: source
+        target: create_test_plan
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: code
+        id: create_test_plan-parse_plan_key
+        source: create_test_plan
+        sourceHandle: source
+        target: parse_plan_key
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: code
+          targetType: code
+        id: parse_plan_key-create_executions
+        source: parse_plan_key
+        sourceHandle: source
+        target: create_executions
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: code
+          targetType: code
+        id: create_executions-xray_linker
+        source: create_executions
+        sourceHandle: source
+        target: xray_linker
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: code
+          targetType: if-else
+        id: xray_linker-check_teams_url
+        source: xray_linker
+        sourceHandle: source
+        target: check_teams_url
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: http-request
+        id: check_teams_url-true-ms_teams_webhook
+        source: check_teams_url
+        sourceHandle: "true"
+        target: ms_teams_webhook
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: end
+        id: ms_teams_webhook-end
+        source: ms_teams_webhook
+        sourceHandle: source
+        target: end
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: end
+        id: check_teams_url-false-end
+        source: check_teams_url
+        sourceHandle: "false"
+        target: end
+        targetHandle: target
+        type: custom
+    nodes:
+      - data:
+          desc: "Xray'de RC Planı ve Execution setleri şu isimler ile oluşturulacaktır: TestPlan: RC Plan $fixVersion | Fonksiyonel: RC $fixVersion Functional-1..N | Non-Functional: RC $fixVersion Non-Functional-1..N"
+          selected: false
+          title: Start
+          type: start
+          variables:
+            - label: FixVersion
+              max_length: 32
+              options: []
+              placeholder: 1.0.0
+              required: true
+              type: text-input
+              variable: fixVersion
+            - label: Fonk.Koşum Set Sayısı
+              max_length: 10
+              options: []
+              placeholder: Set Sayısı
+              required: true
+              type: number
+              variable: exec_count
+            - label: Case Sayısı
+              max_length: 10
+              options: []
+              placeholder: Case sayısı
+              required: true
+              type: number
+              variable: case_count
+            - default: "2"
+              label: Non-Func.Koşum Set Sayısı
+              max_length: 10
+              options: []
+              required: true
+              type: number
+              variable: non_func_exec_count
+        height: 200
+        id: start
+        position:
+          x: 80
+          y: 282
+        positionAbsolute:
+          x: 80
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 242
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data:
+              "{\n  \"jql\": \"project in (\\\"YFMTEST\\\", \\\"ISCEPTEST\\\") and\
+              \ issuetype = Test and labels NOT IN (\\\"NonFunctional\\\", \\\"Trash\\\
+              \") ORDER BY key DESC\",\n  \"maxResults\": 200,\n  \"fields\": [\"\
+              key\",\"summary\",\"parent\",\"customfield_10008\",\"priority\"]\n}"
+            type: json
+          desc: ""
+          headers: "Authorization: {{#env.jira_auth#}}\nContent-Type: application/json"
+          method: post
+          params: ""
+          retry_config:
+            max_retries: 3
+            retry_enabled: true
+            retry_interval: 100
+          selected: false
+          timeout:
+            connect: 10
+            read: 120
+            write: 30
+          title: Jira Fetch
+          type: http-request
+          url: https://commencis.atlassian.net/rest/api/3/search/jql
+          variables: []
+        height: 152
+        id: jira_fetch
+        position:
+          x: 374
+          y: 282
+        positionAbsolute:
+          x: 374
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data:
+              "{\n  \"jql\": \"key in (\\\"YFMTEST-3997\\\", \\\"YFMTEST-4007\\\
+              \", \\\"YFMTEST-4013\\\") ORDER BY key DESC\",\n  \"maxResults\": 200,\n\
+              \  \"fields\": [\"key\",\"summary\",\"parent\",\"customfield_10008\"\
+              ,\"priority\"]\n}"
+            type: json
+          desc: ""
+          headers: "Authorization: {{#env.jira_auth#}}\nContent-Type: application/json"
+          method: post
+          params: ""
+          retry_config:
+            max_retries: 3
+            retry_enabled: true
+            retry_interval: 100
+          selected: false
+          timeout:
+            connect: 10
+            read: 120
+            write: 30
+          title: Jira Fetch Non-Func
+          type: http-request
+          url: https://commencis.atlassian.net/rest/api/3/search/jql
+          variables: []
+        height: 152
+        id: jira_fetch_non_func
+        position:
+          x: 668
+          y: 282
+        positionAbsolute:
+          x: 668
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          code:
+            "def main(func_body, non_func_body):\n    return {\n        'func_cases_json':\
+            \ func_body if func_body else '[]',\n        'non_func_cases_json': non_func_body\
+            \ if non_func_body else '[]'\n    }"
+          code_language: python3
+          desc: ""
+          outputs:
+            func_cases_json:
+              type: string
+            non_func_cases_json:
+              type: string
+          selected: false
+          title: Normalize Cases
+          type: code
+          variables:
+            - value_selector:
+                - jira_fetch
+                - body
+              variable: func_body
+            - value_selector:
+                - jira_fetch_non_func
+                - body
+              variable: non_func_body
+        height: 50
+        id: normalize_cases
+        position:
+          x: 962
+          y: 282
+        positionAbsolute:
+          x: 962
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          code:
+            "def main(func_cases_json, non_func_cases_json, case_count, exec_count, non_func_exec_count):\n\
+            \    import json, random\n    from collections import defaultdict\n    try:\n\
+            \        num_cases = int(str(case_count).strip())\n        if num_cases\
+            \ <= 0: num_cases = 5\n    except:\n        num_cases = 5\n        \n\
+            \    try:\n        num_execs = int(str(exec_count).strip())\n        if\
+            \ num_execs <= 0: num_execs = 4\n    except:\n        num_execs = 4\n\
+            \        \n    try:\n        num_nf_execs = int(str(non_func_exec_count).strip())\n\
+            \        if num_nf_execs < 0: num_nf_execs = 2\n    except:\n        num_nf_execs\
+            \ = 2\n        \n    # 1. Functional Distribution\n    func_data = json.loads(func_cases_json)\
+            \ if func_cases_json else {}\n    func_issues = func_data.get('issues',\
+            \ [])\n    func_assignments = []\n    if len(func_issues) > 0:\n   \
+            \     epics = defaultdict(list)\n        for issue in func_issues:\n\
+            \            f = issue.get('fields', {})\n            p = f.get('parent')\n\
+            \            epic_key = (p.get('key') if isinstance(p, dict) else None)\
+            \ or f.get('customfield_10008') or \"NO_EPIC\"\n            epics[epic_key].append(issue.get('id'))\n\
+            \            \n        for k in epics:\n            random.shuffle(epics[k])\n\
+            \        \n        epic_keys = list(epics.keys())\n        random.shuffle(epic_keys)\n\
+            \        \n        total_needed = num_execs * num_cases\n        flat_func_cases\
+            \ = []\n        \n        while len(flat_func_cases) < total_needed:\n\
+            \            added_in_round = False\n            for ek in epic_keys:\n\
+            \                if len(flat_func_cases) >= total_needed:\n         \
+            \           break\n                if epics[ek]:\n                  \
+            \  flat_func_cases.append(epics[ek].pop())\n                   \
+            \ added_in_round = True\n            if not added_in_round:\n       \
+            \         break\n                \n        for i in range(num_execs):\n\
+            \            start_idx = i * num_cases\n            end_idx = start_idx\
+            \ + num_cases\n            chunk = flat_func_cases[start_idx:end_idx]\n\
+            \            func_assignments.append(chunk)\n    else:\n        func_assignments\
+            \ = [[] for _ in range(num_execs)]\n        \n    # 2. Non-Functional\
+            \ Distribution\n    non_func_data = json.loads(non_func_cases_json) if\
+            \ non_func_cases_json else {}\n    non_func_issues = non_func_data.get('issues',\
+            \ [])\n    nf_case_ids = [issue.get('id') for issue in non_func_issues\
+            \ if issue.get('id')]\n    \n    if not nf_case_ids:\n        nf_case_ids\
+            \ = [\"YFMTEST-3997\", \"YFMTEST-4007\", \"YFMTEST-4013\"]\n        \n\
+            \    nf_assignments = []\n    for i in range(num_nf_execs):\n       \
+            \ nf_assignments.append(list(nf_case_ids))\n                \n    return\
+            \ {\n        'func_assignments_json': json.dumps(func_assignments),\n\
+            \        'non_func_assignments_json': json.dumps(nf_assignments)\n  \
+            \  }"
+          code_language: python3
+          desc: ""
+          outputs:
+            func_assignments_json:
+              type: string
+            non_func_assignments_json:
+              type: string
+          selected: false
+          title: Distribute
+          type: code
+          variables:
+            - value_selector:
+                - normalize_cases
+                - func_cases_json
+              variable: func_cases_json
+            - value_selector:
+                - normalize_cases
+                - non_func_cases_json
+              variable: non_func_cases_json
+            - value_selector:
+                - start
+                - case_count
+              variable: case_count
+            - value_selector:
+                - start
+                - exec_count
+              variable: exec_count
+            - value_selector:
+                - start
+                - non_func_exec_count
+              variable: non_func_exec_count
+        height: 50
+        id: distribute
+        position:
+          x: 1256
+          y: 282
+        positionAbsolute:
+          x: 1256
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data:
+              "{\n  \"fields\": {\n    \"project\": {\"key\": \"YFMTEST\"},\n  \
+              \  \"summary\": \"RC Plan {{#start.fixVersion#}}\",\n    \"issuetype\"\
+              : {\"name\": \"Test Plan\"},\n    \"fixVersions\": [{\"name\": \"{{#start.fixVersion#}}\"\
+              }],\n    \"customfield_10184\": {\"value\": \"Yes\"},\n    \"description\"\
+              : {\n      \"type\": \"doc\",\n      \"version\": 1,\n      \"content\"\
+              : [\n        {\n          \"type\": \"heading\",\n          \"attrs\"\
+              : {\"level\": 3},\n          \"content\": [{\"type\": \"text\", \"\
+              text\": \"Test Object Data\"}]\n        },\n        {\n          \"\
+              type\": \"paragraph\",\n          \"content\": [\n            {\"\
+              type\": \"text\", \"text\": \"Build No:* \", \"marks\": [{\"type\":\
+              \ \"strong\"}]},\n            {\"type\": \"text\", \"text\": \"4 digits\
+              \ Build number of Test Object\", \"marks\": [{\"type\": \"em\"}]}\n\
+              \          ]\n        },\n        {\n          \"type\": \"paragraph\"\
+              ,\n          \"content\": [\n            {\"type\": \"text\", \"text\"\
+              : \"Revision No:* \", \"marks\": [{\"type\": \"strong\"}]},\n     \
+              \       {\"type\": \"text\", \"text\": \"Revision number of Test Object\"\
+              , \"marks\": [{\"type\": \"em\"}]}\n          ]\n        },\n     \
+              \   {\n          \"type\": \"paragraph\",\n          \"content\"\
+              : [\n            {\"type\": \"text\", \"text\": \"Build Name:* \",\
+              \ \"marks\": [{\"type\": \"strong\"}]},\n            {\"type\": \"\
+              text\", \"text\": \"Build name of Test Object\", \"marks\": [{\"type\"\
+              : \"em\"}]}\n          ]\n        },\n        {\n          \"type\"\
+              : \"heading\",\n          \"attrs\": {\"level\": 3},\n          \"\
+              content\": [{\"type\": \"text\", \"text\": \"Test Environment Data\"\
+              }]\n        },\n        {\n          \"type\": \"paragraph\",\n  \
+              \        \"content\": [\n            {\"type\": \"text\", \"text\"\
+              : \"Server URL:* \", \"marks\": [{\"type\": \"strong\"}]},\n      \
+              \      {\"type\": \"text\", \"text\": \"MW/BE server URL\", \"marks\"\
+              : [{\"type\": \"em\"}]}\n          ]\n        },\n        {\n     \
+              \     \"type\": \"paragraph\",\n          \"content\": [\n        \
+              \    {\"type\": \"text\", \"text\": \"MW Version (Build No):* \",\
+              \ \"marks\": [{\"type\": \"strong\"}]},\n            {\"type\": \"\
+              text\", \"text\": \"4 digits Build number of MW\", \"marks\": [{\"\
+              type\": \"em\"}]}\n          ]\n        },\n        {\n          \"\
+              type\": \"paragraph\",\n          \"content\": [\n            {\"\
+              type\": \"text\", \"text\": \"MW Revision No:* \", \"marks\": [{\"\
+              type\": \"strong\"}]},\n            {\"type\": \"text\", \"text\"\
+              : \"Revision number of MW\", \"marks\": [{\"type\": \"em\"}]}\n   \
+              \       ]\n        },\n        {\n          \"type\": \"paragraph\"\
+              ,\n          \"content\": [\n            {\"type\": \"text\", \"text\"\
+              : \"Endpoint: \", \"marks\": [{\"type\": \"strong\"}]},\n         \
+              \   {\"type\": \"text\", \"text\": \"Specify information of any endpoint\
+              \ on which MW or BE is deployed and conduct your tests on.\", \"marks\"\
+              : [{\"type\": \"em\"}]}\n          ]\n        },\n        {\n     \
+              \     \"type\": \"heading\",\n          \"attrs\": {\"level\": 3},\n\
+              \          \"content\": [{\"type\": \"text\", \"text\": \"Release Notes*\"\
+              }]\n        },\n        {\n          \"type\": \"bulletList\",\n  \
+              \        \"content\": [\n            {\n              \"type\": \"\
+              listItem\",\n              \"content\": [\n                {\n    \
+              \              \"type\": \"paragraph\",\n                  \"content\"\
+              : [{\"type\": \"text\", \"text\": \"Describe all features, bugfixes,\
+              \ improvements or etc. included in related release.\", \"marks\":\
+              \ [{\"type\": \"em\"}]}]\n                }\n              ]\n    \
+              \        },\n            {\n              \"type\": \"listItem\",\n\
+              \              \"content\": [\n                {\n                \
+              \  \"type\": \"paragraph\",\n                  \"content\": [{\"type\"\
+              : \"text\", \"text\": \"If test plan is for a Hotfix release, an information\
+              \ including root cause of hotfix and affected areas is given in this\
+              \ section.\", \"marks\": [{\"type\": \"em\"}]}]\n                },\n\
+              \                {\n                  \"type\": \"bulletList\",\n\
+              \                  \"content\": [\n                    {\n        \
+              \              \"type\": \"listItem\",\n                          \
+              \"content\": [\n                            {\n                   \
+              \           \"type\": \"paragraph\",\n                            \
+              \  \"content\": [{\"type\": \"text\", \"text\": \"If Hotfix is result\
+              \ of a Prod issue, in addition to information given above, following\
+              \ information should also be given in order to understand our response\
+              \ time to prod issue:\", \"marks\": [{\"type\": \"em\"}]}]\n      \
+              \                      },\n                            {\n        \
+              \                      \"type\": \"bulletList\",\n                \
+              \              \"content\": [\n                                {\n\
+              \                                  \"type\": \"listItem\",\n      \
+              \                            \"content\": [\n                     \
+              \               {\n                                      \"type\"\
+              : \"paragraph\",\n                                      \"content\"\
+              : [{\"type\": \"text\", \"text\": \"When is Prod issue raised from\
+              \ Customer?\", \"marks\": [{\"type\": \"em\"}]}]\n                \
+              \                    }\n                                  ]\n     \
+              \                           },\n                                {\n\
+              \                                  \"type\": \"listItem\",\n      \
+              \                            \"content\": [\n                     \
+              \               {\n                                      \"type\"\
+              : \"paragraph\",\n                                      \"content\"\
+              : [{\"type\": \"text\", \"text\": \"When development is finished to\
+              \ fix it?\", \"marks\": [{\"type\": \"em\"}]}]\n                  \
+              \                  }\n                                  ]\n       \
+              \                         },\n                                {\n\
+              \                                  \"type\": \"listItem\",\n      \
+              \                            \"content\": [\n                     \
+              \               {\n                                      \"type\"\
+              : \"paragraph\",\n                                      \"content\"\
+              : [{\"type\": \"text\", \"text\": \"When we finished testing of the\
+              \ fix?\", \"marks\": [{\"type\": \"em\"}]}]\n                     \
+              \               }\n                                  ]\n          \
+              \                      }\n                              ]\n       \
+              \                     }\n                          ]\n            \
+              \        }\n                  ]\n                }\n             \
+              \ ]\n            },\n            {\n              \"type\": \"listItem\"\
+              ,\n              \"content\": [\n                {\n              \
+              \    \"type\": \"paragraph\",\n                  \"content\": [{\"\
+              type\": \"text\", \"text\": \"If test plan is for Backup package,\
+              \ an information about related main package must be given in this\
+              \ section.\", \"marks\": [{\"type\": \"em\"}]}]\n                }\n\
+              \              ]\n            }\n          ]\n        },\n        {\n\
+              \          \"type\": \"heading\",\n          \"attrs\": {\"level\"\
+              : 3},\n          \"content\": [{\"type\": \"text\", \"text\": \"Purpose\
+              \ of Test*\"}]\n        },\n        {\n          \"type\": \"paragraph\"\
+              ,\n          \"content\": [{\"type\": \"text\", \"text\": \"Describe\
+              \ purpose of related test run.\", \"marks\": [{\"type\": \"em\"}]}]\n\
+              \        },\n        {\n          \"type\": \"heading\",\n        \
+              \  \"attrs\": {\"level\": 3},\n          \"content\": [{\"type\":\
+              \ \"text\", \"text\": \"Test Notes*\"}]\n        },\n        {\n  \
+              \        \"type\": \"paragraph\",\n          \"content\": [{\"type\"\
+              : \"text\", \"text\": \"Note all important activities and/or outcomes\
+              \ during testing of related test run.\", \"marks\": [{\"type\": \"\
+              em\"}]}]\n        },\n        {\n          \"type\": \"heading\",\n\
+              \          \"attrs\": {\"level\": 3},\n          \"content\": [{\"\
+              type\": \"text\", \"text\": \"JIRA Issues*\"}]\n        },\n      \
+              \  {\n          \"type\": \"paragraph\",\n          \"content\"\
+              : [{\"type\": \"text\", \"text\": \"Put links of Opened, Resolved,\
+              \ and/or Closed JIRA issue list.\", \"marks\": [{\"type\": \"em\"\
+              }]}]\n        }\n      ]\n    }\n  }\n}"
+            type: json
+          desc: ""
+          headers: "Authorization: {{#env.jira_auth#}}\nContent-Type: application/json"
+          method: post
+          params: ""
+          retry_config:
+            max_retries: 3
+            retry_enabled: true
+            retry_interval: 100
+          selected: false
+          timeout:
+            connect: 10
+            read: 120
+            write: 30
+          title: Create Test Plan
+          type: http-request
+          url: https://commencis.atlassian.net/rest/api/3/issue
+          variables: []
+        height: 152
+        id: create_test_plan
+        position:
+          x: 1550
+          y: 282
+        positionAbsolute:
+          x: 1550
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          code:
+            "def main(body):\n    import json\n    try:\n        data = json.loads(body)\n\
+            \    except:\n        data = {}\n    return {'plan_key': data.get('key')\
+            \ or \"\", 'plan_id': data.get('id') or \"\"}"
+          code_language: python3
+          desc: ""
+          outputs:
+            plan_id:
+              type: string
+            plan_key:
+              type: string
+          selected: false
+          title: Parse Plan Key
+          type: code
+          variables:
+            - value_selector:
+                - create_test_plan
+                - body
+              variable: body
+        height: 50
+        id: parse_plan_key
+        position:
+          x: 1844
+          y: 282
+        positionAbsolute:
+          x: 1844
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          code:
+            "def main(fixVersion, exec_count, non_func_exec_count, jira_auth):\n\
+            \    import json, requests\n    \n    try:\n        num_execs = int(exec_count)\
+            \ if exec_count else 4\n    except:\n        num_execs = 4\n        \n\
+            \    try:\n        num_nf_execs = int(non_func_exec_count) if non_func_exec_count\
+            \ is not None else 2\n    except:\n        num_nf_execs = 2\n        \n\
+            \    auth_str = (jira_auth or \"\").strip()\n    if not auth_str:\n  \
+            \      auth_str = \"Basic bXVyYXQucHVyYWxpZ2lsQGNvbW1lbmNpcy5jb206QVRBVFQzeEZmR0Ywc2xkcnU2LXJKajhTN19Dbno0N2JveXRtbG4yZWd1Q3ZKeXZlRGJzdU5MWkVoRjQycWc1SElRUnlvWWZPR2k2U0RUVWdBZVEzU19DQzMzNWcyTU40Q2ZORzZTR1R5amR1M2ZxbDNHcWx2dDBkTmsydThiM0RKSElrb2xaZWRnTzlPbnQ0VlhqMmFHX2VrRnRoNEZTejlWblVNZDdPSktMclNQdVFrYzVsOVM4PTYxNzEwOUE3\"\
+            \n    elif not auth_str.startswith(\"Basic \"):\n        auth_str =\
+            \ f\"Basic {auth_str}\"\n        \n    jira_headers = {\n        \"Authorization\"\
+            : auth_str,\n        \"Content-Type\": \"application/json\",\n       \
+            \ \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\"\n    }\n\
+            \    \n    session = requests.Session()\n    session.headers.update(jira_headers)\n\
+            \    \n    # 1. Create Functional Executions (RC {fixVersion} Functional-{i+1})\n\
+            \    func_exec_ids = []\n    func_exec_keys = []\n    for i in range(num_execs):\n\
+            \        te_payload = {\n            \"fields\": {\n                \"\
+            project\": {\"key\": \"YFMTEST\"},\n                \"summary\": f\"RC\
+            \ {fixVersion} Functional-{i+1}\",\n                \"issuetype\": {\"\
+            name\": \"Test Execution\"},\n                \"fixVersions\": [{\"name\"\
+            : fixVersion}],\n                \"customfield_10184\": {\"value\": \"\
+            Yes\"}\n            }\n        }\n        resp = session.post(\"https://commencis.atlassian.net/rest/api/3/issue\"\
+            , json=te_payload, timeout=8)\n        if resp.status_code >= 400:\n \
+            \           raise Exception(f\"Failed to create Functional Test Execution\
+            \ {i+1}. Status: {resp.status_code}, Response: {resp.text}\")\n      \
+            \  res_data = resp.json()\n        func_exec_ids.append(res_data.get(\"\
+            id\"))\n        func_exec_keys.append(res_data.get(\"key\"))\n      \
+            \      \n    # 2. Create Non-Functional Executions (RC {fixVersion} Non-Functional-{i+1})\n\
+            \    non_func_exec_ids = []\n    non_func_exec_keys = []\n    for i in\
+            \ range(num_nf_execs):\n        nf_payload = {\n            \"fields\"\
+            : {\n                \"project\": {\"key\": \"YFMTEST\"},\n         \
+            \       \"summary\": f\"RC {fixVersion} Non-Functional-{i+1}\",\n    \
+            \            \"issuetype\": {\"name\": \"Test Execution\"},\n        \
+            \        \"fixVersions\": [{\"name\": fixVersion}],\n                \"\
+            customfield_10184\": {\"value\": \"Yes\"}\n            }\n        }\n\
+            \        resp = session.post(\"https://commencis.atlassian.net/rest/api/3/issue\"\
+            , json=nf_payload, timeout=8)\n        if resp.status_code >= 400:\n \
+            \           raise Exception(f\"Failed to create Non-Functional Test Execution\
+            \ {i+1}. Status: {resp.status_code}, Response: {resp.text}\")\n      \
+            \  res_data = resp.json()\n        non_func_exec_ids.append(res_data.get(\"\
+            id\"))\n        non_func_exec_keys.append(res_data.get(\"key\"))\n  \
+            \          \n    all_exec_ids = func_exec_ids + non_func_exec_ids\n \
+            \   \n    return {\n        \"func_exec_ids_json\": json.dumps(func_exec_ids),\n\
+            \        \"non_func_exec_ids_json\": json.dumps(non_func_exec_ids),\n\
+            \        \"func_exec_keys_json\": json.dumps(func_exec_keys),\n     \
+            \   \"non_func_exec_keys_json\": json.dumps(non_func_exec_keys),\n  \
+            \      \"all_exec_ids_json\": json.dumps(all_exec_ids)\n    }"
+          code_language: python3
+          desc: ""
+          outputs:
+            all_exec_ids_json:
+              type: string
+            func_exec_ids_json:
+              type: string
+            func_exec_keys_json:
+              type: string
+            non_func_exec_ids_json:
+              type: string
+            non_func_exec_keys_json:
+              type: string
+          selected: false
+          title: Create Executions
+          type: code
+          variables:
+            - value_selector:
+                - start
+                - fixVersion
+              variable: fixVersion
+            - value_selector:
+                - start
+                - exec_count
+              variable: exec_count
+            - value_selector:
+                - start
+                - non_func_exec_count
+              variable: non_func_exec_count
+            - value_selector:
+                - env
+                - jira_auth
+              variable: jira_auth
+        height: 50
+        id: create_executions
+        position:
+          x: 2138
+          y: 282
+        positionAbsolute:
+          x: 2138
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          code:
+            "def main(fixVersion, client_id, client_secret, plan_id, plan_key, all_exec_ids_json, func_exec_ids_json, non_func_exec_ids_json, func_exec_keys_json, non_func_exec_keys_json, func_assignments_json, non_func_assignments_json):\n\
+            \    import json, requests\n    \n    outputs = {\"result\": \"Started\"\
+            }\n    try:\n        all_exec_ids = json.loads(all_exec_ids_json)\n\
+            \        func_exec_ids = json.loads(func_exec_ids_json)\n        non_func_exec_ids\
+            \ = json.loads(non_func_exec_ids_json)\n        func_exec_keys = json.loads(func_exec_keys_json)\
+            \ if func_exec_keys_json else []\n        non_func_exec_keys = json.loads(non_func_exec_keys_json)\
+            \ if non_func_exec_keys_json else []\n        func_assignments = json.loads(func_assignments_json)\n\
+            \        non_func_assignments = json.loads(non_func_assignments_json)\n\
+            \    except:\n        all_exec_ids = []\n        func_exec_ids = []\n\
+            \        non_func_exec_ids = []\n        func_exec_keys = []\n      \
+            \  non_func_exec_keys = []\n        func_assignments = []\n        non_func_assignments\
+            \ = []\n        \n    client_id = (client_id or \"\").strip()\n    if\
+            \ not client_id:\n        client_id = \"D37A0EBFB2B94DAEB309F6273D75C267\"\
+            \n        \n    client_secret = (client_secret or \"\").strip()\n   \
+            \ if not client_secret:\n        client_secret = \"33e5ccbf946278c274aacd7e4a6a43b32e59f5cf6db16dba507f5bea7445dbec\"\
+            \n    \n    session = requests.Session()\n    resp = session.post(\"\
+            https://xray.cloud.getxray.app/api/v1/authenticate\", json={\"client_id\"\
+            : client_id, \"client_secret\": client_secret}, timeout=8)\n    if resp.status_code\
+            \ >= 400:\n        raise Exception(f\"Xray Auth Failed: {resp.status_code}\
+            \ - {resp.text}\")\n    \n    auth_resp = resp.json()\n    token = auth_resp\
+            \ if isinstance(auth_resp, str) else auth_resp.get(\"token\")\n    \n\
+            \    session.headers.update({\"Authorization\": f\"Bearer {token}\",\
+            \ \"Content-Type\": \"application/json\"})\n    url = \"https://xray.cloud.getxray.app/api/v2/graphql\"\
+            \n    \n    def run_gql(q, v):\n        resp = session.post(url, json={'query':\
+            \ q, 'variables': v}, timeout=8)\n        if resp.status_code >= 400:\n\
+            \            raise Exception(f\"GraphQL Error: {resp.text}\")\n     \
+            \   return resp.json()\n        \n    # 1. Link ALL executions to Test\
+            \ Plan\n    if all_exec_ids and plan_id:\n        mut_plan = 'mutation($p:\
+            \ String!, $e: [String]!) { addTestExecutionsToTestPlan(issueId: $p, testExecIssueIds:\
+            \ $e) { addedTestExecutions } }'\n        outputs['plan_link'] = run_gql(mut_plan,\
+            \ {'p': plan_id, 'e': all_exec_ids})\n        \n    # 2. Add Functional\
+            \ Tests\n    mut_tests = 'mutation($e: String!, $t: [String]!) { addTestsToTestExecution(issueId:\
+            \ $e, testIssueIds: $t) { addedTests } }'\n    for i, e_id in enumerate(func_exec_ids):\n\
+            \        if i < len(func_assignments) and func_assignments[i]:\n   \
+            \         outputs[f'func_exec_{i+1}_link'] = run_gql(mut_tests, {'e':\
+            \ e_id, 't': func_assignments[i]})\n            \n    # 3. Add Non-Functional\
+            \ Tests\n    for j, nf_e_id in enumerate(non_func_exec_ids):\n      \
+            \  if j < len(non_func_assignments) and non_func_assignments[j]:\n  \
+            \          outputs[f'non_func_exec_{j+1}_link'] = run_gql(mut_tests,\
+            \ {'e': nf_e_id, 't': non_func_assignments[j]})\n            \n    jira_base\
+            \ = \"https://commencis.atlassian.net/browse\"\n    summary_lines =\
+            \ [\n        \"Xray'de RC Planı ve Execution setleri aşağıdaki linkler\
+            \ ile oluşturuldu:\\n\"\n    ]\n    \n    if plan_key:\n        summary_lines.append(f\"\
+            **TestPlan:** [RC Plan {fixVersion}]({jira_base}/{plan_key}) (`{plan_key}`)\"\
+            )\n    else:\n        summary_lines.append(f\"**TestPlan:** RC Plan {fixVersion}\"\
+            )\n        \n    for i in range(len(func_exec_ids)):\n        e_key =\
+            \ func_exec_keys[i] if i < len(func_exec_keys) and func_exec_keys[i]\
+            \ else \"\"\n        if e_key:\n            summary_lines.append(f\"\
+            **{i+1}.Test Execution:** [RC {fixVersion} Functional-{i+1}]({jira_base}/{e_key})\
+            \ (`{e_key}`)\")\n        else:\n            summary_lines.append(f\"\
+            **{i+1}.Test Execution:** RC {fixVersion} Functional-{i+1}\")\n    \
+            \        \n    for j in range(len(non_func_exec_ids)):\n        nf_key\
+            \ = non_func_exec_keys[j] if j < len(non_func_exec_keys) and non_func_exec_keys[j]\
+            \ else \"\"\n        if nf_key:\n            summary_lines.append(f\"\
+            **{j+1}.Test Execution:** [RC {fixVersion} Non-Functional-{j+1}]({jira_base}/{nf_key})\
+            \ (`{nf_key}`)\")\n        else:\n            summary_lines.append(f\"\
+            **{j+1}.Test Execution:** RC {fixVersion} Non-Functional-{j+1}\")\n \
+            \       \n    final_result_text = \"\\n\".join(summary_lines)\n    \n\
+            \    # Teams MessageCard payload with clickable markdown links + open\
+            \ action button\n    teams_card = {\n        \"@type\": \"MessageCard\"\
+            ,\n        \"@context\": \"http://schema.org/extensions\",\n       \
+            \ \"themeColor\": \"0076D7\",\n        \"summary\": f\"YAFI Regresyon\
+            \ Planı Oluşturuldu - {fixVersion}\",\n        \"sections\": [{\n   \
+            \         \"activityTitle\": f\"🚀 **YAFI Regresyon Planı Oluşturuldu\
+            \ (v{fixVersion})**\",\n            \"activitySubtitle\": \"Xray Test\
+            \ Plan & Execution Setleri Tamamlandı\",\n            \"text\": final_result_text.replace(\"\
+            \\n\", \"\\n\\n\")\n        }]\n    }\n    if plan_key:\n        teams_card[\"\
+            potentialAction\"] = [{\n            \"@type\": \"OpenUri\",\n     \
+            \       \"name\": f\"🔗 {plan_key} Test Planını Aç\",\n            \"\
+            targets\": [{\"os\": \"default\", \"uri\": f\"{jira_base}/{plan_key}\"\
+            }]\n        }]\n    \n    return {\n        \"result\": final_result_text,\n\
+            \        \"teams_payload\": json.dumps(teams_card)\n    }"
+          code_language: python3
+          desc: ""
+          outputs:
+            result:
+              type: string
+            teams_payload:
+              type: string
+          selected: false
+          title: Xray Linker
+          type: code
+          variables:
+            - value_selector:
+                - start
+                - fixVersion
+              variable: fixVersion
+            - value_selector:
+                - env
+                - xray_client_id
+              variable: client_id
+            - value_selector:
+                - env
+                - xray_client_secret
+              variable: client_secret
+            - value_selector:
+                - parse_plan_key
+                - plan_id
+              variable: plan_id
+            - value_selector:
+                - parse_plan_key
+                - plan_key
+              variable: plan_key
+            - value_selector:
+                - create_executions
+                - all_exec_ids_json
+              variable: all_exec_ids_json
+            - value_selector:
+                - create_executions
+                - func_exec_ids_json
+              variable: func_exec_ids_json
+            - value_selector:
+                - create_executions
+                - non_func_exec_ids_json
+              variable: non_func_exec_ids_json
+            - value_selector:
+                - create_executions
+                - func_exec_keys_json
+              variable: func_exec_keys_json
+            - value_selector:
+                - create_executions
+                - non_func_exec_keys_json
+              variable: non_func_exec_keys_json
+            - value_selector:
+                - distribute
+                - func_assignments_json
+              variable: func_assignments_json
+            - value_selector:
+                - distribute
+                - non_func_assignments_json
+              variable: non_func_assignments_json
+        height: 50
+        id: xray_linker
+        position:
+          x: 2432
+          y: 282
+        positionAbsolute:
+          x: 2432
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          cases:
+            - case_id: "true"
+              conditions:
+                - comparison_operator: not empty
+                  id: cond-1
+                  var_type: string
+                  variable_selector:
+                    - env
+                    - teamsWebhookUrl
+              id: case-true
+              logical_operator: and
+          desc: "teamsWebhookUrl dolu mu?"
+          selected: false
+          title: Teams URL Var mı?
+          type: if-else
+        height: 120
+        id: check_teams_url
+        position:
+          x: 2726
+          y: 282
+        positionAbsolute:
+          x: 2726
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data: "{{#xray_linker.teams_payload#}}"
+            type: json
+          desc: ""
+          headers: "Content-Type: application/json"
+          method: post
+          params: ""
+          retry_config:
+            max_retries: 3
+            retry_enabled: true
+            retry_interval: 100
+          selected: false
+          timeout:
+            connect: 5
+            read: 10
+            write: 5
+          title: MS Teams Webhook Gönder
+          type: http-request
+          url: "{{#env.teamsWebhookUrl#}}"
+          variables: []
+        height: 152
+        id: ms_teams_webhook
+        position:
+          x: 3020
+          y: 182
+        positionAbsolute:
+          x: 3020
+          y: 182
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+      - data:
+          desc: ""
+          outputs:
+            - value_selector:
+                - xray_linker
+                - result
+              variable: result
+          selected: false
+          title: End
+          type: end
+        height: 87
+        id: end
+        position:
+          x: 3314
+          y: 282
+        positionAbsolute:
+          x: 3314
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 241
+    viewport:
+      x: -1816.5
+      y: 169.5
+      zoom: 1
+  rag_pipeline_variables: []

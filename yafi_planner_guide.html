@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAFI Regression Planner - Kapsamlı Kullanım Rehberi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card h2 {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #e2e8f0;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 15px;
+        }
+
+        .card h2 span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 8px;
+            margin-right: 15px;
+            font-size: 1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .code-block {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #a78bfa;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        ul, ol {
+            padding-left: 22px;
+            color: #cbd5e1;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        .alert-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 18px 22px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 20px;
+        }
+
+        .alert-box p {
+            margin: 0;
+            color: #fcd34d;
+            font-size: 0.95rem;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 18px 22px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 20px;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #93c5fd;
+            font-size: 0.95rem;
+        }
+
+        .badge-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .step-number {
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        th, td {
+            border: 1px solid var(--card-border);
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(15, 23, 42, 0.8);
+            color: #e2e8f0;
+        }
+
+        td {
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>YAFI Regression Planner</h1>
+            <div class="subtitle">Otomatik Regresyon Testi Dağıtım ve Planlama Asistanı</div>
+            
+            <div class="badge-container">
+                <div class="badge"><div class="badge-icon"></div> Dify.ai Workflow (v0.6.0)</div>
+                <div class="badge"><div class="badge-icon" style="background:#3b82f6;"></div> Jira & Xray Entegrasyonu</div>
+                <div class="badge"><div class="badge-icon" style="background:#8b5cf6;"></div> Tıklanabilir Doğrudan Linkler</div>
+            </div>
+        </header>
+
+        <!-- 1. ÜRÜN ÖZETİ -->
+        <div class="card">
+            <h2><span>1</span> Ürün Özeti</h2>
+            <p><strong>YAFI Regression Planner</strong>, QA ekibinin koşturacağı regresyon testlerini Jira'dan otomatik oluşturan, Fonksiyonel test senaryolarını Epic/Parent bazlı kümülatif döngü ve rastgele karıştırma (<code>random.shuffle</code>) algoritması ile <code>RC {fixVersion} Functional-1..N</code> formatında "Test Execution" paketlerine bölen ve belirlenen 3 özel <strong>Non-Functional</strong> testi (<code>YFMTEST-3997</code>, <code>YFMTEST-4007</code>, <code>YFMTEST-4013</code>) <code>RC {fixVersion} Non-Functional-1..N</code> formatındaki paketlere aktaran bir otomasyon aracıdır.</p>
+            <p>Tüm oluşturulan Test Execution paketleri otomatik olarak standart açıklama şablonuyla açılan ortak bir Test Planına (<strong><code>RC Plan {fixVersion}</code></strong>) bağlanır. Hem Dify ekranında hem de Teams kanalında tüm paketler <strong>doğrudan tıklanabilir Jira bağlantıları</strong> olarak paylaşılır.</p>
+        </div>
+
+        <!-- 2. TIKLANABİLİR LİNKLER VE ERİŞİM -->
+        <div class="card">
+            <h2><span>2</span> Tıklanabilir Doğrudan Jira Bağlantıları</h2>
+            <p>Sonuç ekranında ve Teams bildirimlerinde oluşturulan her issue için doğrudan Jira bağlantısı oluşturulur:</p>
+            <ul>
+                <li><strong>Test Plan Linki:</strong> <code>https://commencis.atlassian.net/browse/{plan_key}</code></li>
+                <li><strong>Fonksiyonel Execution Linkleri:</strong> <code>https://commencis.atlassian.net/browse/{func_key}</code></li>
+                <li><strong>Non-Functional Execution Linkleri:</strong> <code>https://commencis.atlassian.net/browse/{non_func_key}</code></li>
+            </ul>
+            <div class="info-box">
+                <p><strong>Doğrudan Erişim:</strong><br>
+                Dify sonuç ekranındaki veya Teams mesajındaki mavi bağlantılara tıklayarak ilgili Test Planı veya Test Execution paketini tek tıkla tarayıcınızda açabilirsiniz.</p>
+            </div>
+        </div>
+
+        <!-- 3. JQL FİLTRELERİ VE TEST ÇEKME KURALLARI -->
+        <div class="card">
+            <h2><span>3</span> JQL Sorguları ve Test Çekme Kuralları</h2>
+            <p>İş akışı aşağıdaki JQL sorgularını kullanır:</p>
+            
+            <p><strong>1. Fonksiyonel Test JQL Sorgusu:</strong></p>
+            <div class="code-block">project in ("YFMTEST", "ISCEPTEST") and issuetype = Test and labels NOT IN ("NonFunctional", "Trash") ORDER BY key DESC</div>
+
+            <p><strong>2. Non-Functional Test JQL Sorgusu:</strong></p>
+            <div class="code-block">key in ("YFMTEST-3997", "YFMTEST-4007", "YFMTEST-4013") ORDER BY key DESC</div>
+        </div>
+
+        <!-- 4. 5 ADIMLI TEST DAĞITIM ALGORİTMASI -->
+        <div class="card">
+            <h2><span>4</span> 5 Adımlı Test Dağıtım Algoritması</h2>
+            <ol>
+                <li><span class="step-number">Epic/Parent Gruplama:</span> Parent/Epic (`customfield_10008` veya `parent.key`) bazında gruplanır.</li>
+                <li><span class="step-number">Epic İçi Karıştırma:</span> Her Epic grubu kendi içinde `random.shuffle()` ile karıştırılır.</li>
+                <li><span class="step-number">Epic Sıralaması Karıştırma:</span> Epic gruplarının sırası rastgele karıştırılır.</li>
+                <li><span class="step-number">Kümülatif Round-Robin Dağıtım:</span> Her turda her Epic'ten 1 test çekilerek paketlere aktarılır.</li>
+                <li><span class="step-number">Non-Functional Sabit Kopyalama:</span> 3 özel Non-Functional test, tüm Non-Functional paketlerine eşit şekilde kopyalanır.</li>
+            </ol>
+        </div>
+
+        <!-- 5. TEST PLAN AÇIKLAMA ŞABLONU -->
+        <div class="card">
+            <h2><span>5</span> Test Plan Açıklama Şablonu (Description Template)</h2>
+            <p>Jira'da otomatik oluşturulan <code>RC Plan {fixVersion}</code> Test Planının <strong>Description</strong> alanına standart ekip şablonu (Atlassian Document Format ADF) otomatik eklenir:</p>
+            <ul>
+                <li><strong>Test Object Data:</strong> Build No, Revision No, Build Name</li>
+                <li><strong>Test Environment Data:</strong> Server URL, MW Version (Build No), MW Revision No, Endpoint</li>
+                <li><strong>Release Notes*:</strong> Sürüm detayları, Hotfix kök nedenleri ve Backup paket açıklamaları</li>
+                <li><strong>Purpose of Test*:</strong> Test koşum amacı</li>
+                <li><strong>Test Notes*:</strong> Önemli notlar ve bulgular</li>
+                <li><strong>JIRA Issues*:</strong> İlgili Jira issue bağlantıları</li>
+            </ul>
+        </div>
+
+        <!-- 6. İSİMLENDİRME STANDARTLARI -->
+        <div class="card">
+            <h2><span>6</span> İsimlendirme Standartları</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Paket Tipi</th>
+                        <th>İsimlendirme Formatı</th>
+                        <th>Örnek (fixVersion = 1.2.3)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Ana Test Planı</strong></td>
+                        <td><code>RC Plan {fixVersion}</code></td>
+                        <td><code>RC Plan 1.2.3</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fonksiyonel Executions</strong></td>
+                        <td><code>RC {fixVersion} Functional-{i}</code></td>
+                        <td><code>RC 1.2.3 Functional-1</code>, <code>RC 1.2.3 Functional-2</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Non-Functional Executions</strong></td>
+                        <td><code>RC {fixVersion} Non-Functional-{j}</code></td>
+                        <td><code>RC 1.2.3 Non-Functional-1</code>, <code>RC 1.2.3 Non-Functional-2</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 7. KULLANIM PARAMETRELERİ VE ENV DEĞİŞKENLERİ -->
+        <div class="card">
+            <h2><span>7</span> Kullanım Parametreleri ve Ortam Değişkenleri</h2>
+            <p><strong>Girdi Parametreleri (Start Node Inputs):</strong></p>
+            <ul>
+                <li><strong>FixVersion:</strong> Placeholder: <code>1.0.0</code></li>
+                <li><strong>Fonk.Koşum Set Sayısı:</strong> Placeholder: <code>Set Sayısı</code></li>
+                <li><strong>Case Sayısı:</strong> Placeholder: <code>Case sayısı</code></li>
+                <li><strong>Non-Func.Koşum Set Sayısı:</strong> Default: <code>2</code></li>
+            </ul>
+            <p><strong>Ortam Değişkenleri (Environment Variables):</strong></p>
+            <ul>
+                <li><code>jira_auth</code>: Jira Basic Auth Token</li>
+                <li><code>xray_client_id</code>: Xray Client ID</li>
+                <li><code>xray_client_secret</code>: Xray Client Secret</li>
+                <li><code>teamsWebhookUrl</code>: MS Teams Webhook URL *(Opsiyonel)*</li>
+            </ul>
+        </div>
+
+        <!-- 8. MS TEAMS WEBHOOK KURULUMU VE KULLANIMI -->
+        <div class="card">
+            <h2><span>8</span> MS Teams Webhook Kurulumu ve Kullanımı</h2>
+            <ol>
+                <li>Teams grubunuzda <strong>Workflows</strong> sayfasına gidin.</li>
+                <li><strong>"Send webhook alerts to YaFi Only QA"</strong> akışını seçin.</li>
+                <li><strong>"Copy webhook link"</strong> butonuna tıklayarak adresi kopyalayın.</li>
+                <li>Kopyaladığınız adresi Dify <strong>Çevre Değişkenleri (`teamsWebhookUrl`)</strong> alanına yapıştırın.</li>
+            </ol>
+        </div>
+
+    </div>
+
+</body>
+</html>

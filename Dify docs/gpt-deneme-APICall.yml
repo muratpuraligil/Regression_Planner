@@ -1,0 +1,49 @@
+version: "0.1.0"
+kind: app
+app:
+  name: jira-filter-update
+  mode: workflow
+
+workflow:
+  graph:
+    nodes:
+      - id: start
+        type: start
+        data:
+          title: Start
+
+      - id: http_request
+        type: http-request
+        data:
+          title: Update Jira Filter
+          method: PUT
+          url: https://commencis.atlassian.net/rest/api/2/filter/10337
+          headers:
+            Content-Type: application/json
+            Authorization: Bearer {{jira_token}}
+          body:
+            type: json
+            content: |
+              {
+                "jql": "assignee in (currentUser()) AND project in (ISCEPANDROID, ISCEPSRV, ISCEIPHONE) AND issuetype in (Bug, \"Change Request\", Improvement, \"New Feature\", Story, Task) AND status = Approved AND fixVersion in {{fixVersion}} order by updated DESC"
+              }
+
+      - id: end
+        type: end
+        data:
+          title: End
+
+    edges:
+      - source: start
+        target: http_request
+      - source: http_request
+        target: end
+
+  variables:
+    - name: jira_token
+      type: secret
+      required: true
+
+    - name: fixVersion
+      type: string
+      required: true

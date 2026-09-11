@@ -1,0 +1,4 @@
+jiraAuth:Basic <YOUR_BASE64_AUTH_STRING>
+applicationjson:application/json
+xray_client_id:<YOUR_XRAY_CLIENT_ID>
+xray_client_secret:<YOUR_XRAY_CLIENT_SECRET>
